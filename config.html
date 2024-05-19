@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Configuration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             display: flex;
@@ -10,38 +11,143 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
-            flex-direction: column;
+			background: radial-gradient(circle, rgba(26,0,31,1) 0%, rgba(30,30,30,1) 80%);
+
+			font-family: 'Roboto', sans-serif;
+            color: #e0e0e0;
         }
+		body::before {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxwYXRoIGQ9Ik00IDN2MW0wLTMwdjFNMzIgM2gzVjBtLTMyIDBoM3YxTSA1IDFoM3YxTSAxNCA0aDNtLTMgMGgzVjBNIDI4IDFoM3YxTSAyMCA0aDNtLTMgMGgzVjFNIDMyIDFoM3YxTSAyOCA0aDNtLTMgMGgzVjFNIDM2IDFoM3YxTTM4IDF2MW0wIDBoM3YxTSAyOCAzaDNtLTMgMGgzVjFNIDIgNGgzVjFtLTMgMGgzVjBNIDAgNGgzVjFtMyAwbDMgMFYwYTMgMyAwIDAwLTYgMXYzTTIwIDRINyIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9Ii4yNSIgLz48L3N2Zz4=') repeat;
+			opacity: 0.05;
+		}
+
         form {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
+            width: 350px;
         }
-        label {
-            margin-top: 10px;
+        .input-group {
+            position: relative;
+            margin-top: 15px;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: #2e2e2e;
+            color: #e0e0e0;
+            outline: none;
+        }
+        input::placeholder {
+            color: #888;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .interaction-group {
+            display: flex;
+            align-items: center;
+        }
+        .interaction-group input[type="number"] {
+            flex: 1;
+        }
+        .interaction-group span {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #888;
+        }
+        button {
+            padding: 10px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2ebf91;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+        }
+        button:hover {
+            background-color: #249d7d;
+        }
+        #loadButton {
+            background-color: #8360c3;
+            margin-left: 10px;
+        }
+        #loadButton:hover {
+            background-color: #674ea7;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
         }
         #fileInput {
             display: none;
         }
+        #ghostImage {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            background-color: #2e2e2e;
+            color: #e0e0e0;
+            outline: none;
+        }
+        #imagePreview {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        #imagePreview img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
-    <h1>Configuration</h1>
     <form id="configForm">
-        <label>
-            User ID:
-            <input type="text" id="userId" required />
-        </label>
-        <label>
-            Ghost Shake Time (ms):
-            <input type="number" id="shakeTime" required />
-        </label>
-        <label>
-            Bubble Display Time (ms):
-            <input type="number" id="bubbleTime" required />
-        </label>
-        <button type="submit">Save to File</button>
-        <button type="button" id="loadButton">Load from File</button>
+        <h2 style="text-align: center; margin-bottom: 20px;">Configuration</h2>
+        <div class="input-group">
+            <input type="text" id="userId" placeholder="User ID" required />
+        </div>
+        <div class="input-group interaction-group">
+            <input type="number" id="interactionTime" placeholder="3" step="0.1" value="3" required />
+            <span>Interaction Time (s)</span>
+        </div>
+        <div class="input-group">
+            <input type="text" id="additionalSetting1" placeholder="Additional Setting 1" />
+        </div>
+        <div class="input-group">
+            <input type="text" id="additionalSetting2" placeholder="Additional Setting 2" />
+        </div>
+        <div class="input-group">
+            <label id="ghostImageLabel" for="ghostImage">Upload Ghost Image</label>
+            <input type="file" id="ghostImage" accept="image/*" />
+        </div>
+        <div id="imagePreview">
+            <img id="ghostImagePreview" src="" alt="Ghost Image Preview" />
+        </div>
+        <div class="button-group">
+            <button type="submit">Save to File</button>
+            <button type="button" id="loadButton">Load from File</button>
+        </div>
         <input type="file" id="fileInput" accept=".json">
         <a id="downloadLink" style="display:none"></a>
     </form>
@@ -50,8 +156,10 @@
             event.preventDefault();
             const config = {
                 userId: document.getElementById('userId').value,
-                shakeTime: document.getElementById('shakeTime').value,
-                bubbleTime: document.getElementById('bubbleTime').value,
+                interactionTime: document.getElementById('interactionTime').value,
+                additionalSetting1: document.getElementById('additionalSetting1').value,
+                additionalSetting2: document.getElementById('additionalSetting2').value,
+                ghostImage: document.getElementById('ghostImagePreview').src,
             };
             const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -73,8 +181,10 @@
                     const contents = e.target.result;
                     const config = JSON.parse(contents);
                     document.getElementById('userId').value = config.userId;
-                    document.getElementById('shakeTime').value = config.shakeTime;
-                    document.getElementById('bubbleTime').value = config.bubbleTime;
+                    document.getElementById('interactionTime').value = config.interactionTime;
+                    document.getElementById('additionalSetting1').value = config.additionalSetting1;
+                    document.getElementById('additionalSetting2').value = config.additionalSetting2;
+                    document.getElementById('ghostImagePreview').src = config.ghostImage;
                     alert('Configuration loaded!');
                 };
                 reader.readAsText(file);
@@ -84,15 +194,30 @@
         window.onload = function() {
             const config = JSON.parse(localStorage.getItem('config') || '{}');
             document.getElementById('userId').value = config.userId || '';
-            document.getElementById('shakeTime').value = config.shakeTime || '';
-            document.getElementById('bubbleTime').value = config.bubbleTime || '';
+            document.getElementById('interactionTime').value = config.interactionTime || '3';
+            document.getElementById('additionalSetting1').value = config.additionalSetting1 || '';
+            document.getElementById('additionalSetting2').value = config.additionalSetting2 || '';
+            document.getElementById('ghostImagePreview').src = config.ghostImage || '';
         }
+
+        document.getElementById('ghostImage').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('ghostImagePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
 
         document.getElementById('configForm').addEventListener('submit', function (event) {
             const config = {
                 userId: document.getElementById('userId').value,
-                shakeTime: document.getElementById('shakeTime').value,
-                bubbleTime: document.getElementById('bubbleTime').value,
+                interactionTime: document.getElementById('interactionTime').value,
+                additionalSetting1: document.getElementById('additionalSetting1').value,
+                additionalSetting2: document.getElementById('additionalSetting2').value,
+                ghostImage: document.getElementById('ghostImagePreview').src,
             };
             localStorage.setItem('config', JSON.stringify(config));
         });
