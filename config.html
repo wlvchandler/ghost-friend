@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Configuration</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            flex-direction: column;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 10px;
+        }
+        #fileInput {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Configuration</h1>
+    <form id="configForm">
+        <label>
+            User ID:
+            <input type="text" id="userId" required />
+        </label>
+        <label>
+            Ghost Shake Time (ms):
+            <input type="number" id="shakeTime" required />
+        </label>
+        <label>
+            Bubble Display Time (ms):
+            <input type="number" id="bubbleTime" required />
+        </label>
+        <button type="submit">Save to File</button>
+        <button type="button" id="loadButton">Load from File</button>
+        <input type="file" id="fileInput" accept=".json">
+        <a id="downloadLink" style="display:none"></a>
+    </form>
+    <script>
+        document.getElementById('configForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const config = {
+                userId: document.getElementById('userId').value,
+                shakeTime: document.getElementById('shakeTime').value,
+                bubbleTime: document.getElementById('bubbleTime').value,
+            };
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = url;
+            downloadLink.download = 'conf.json';
+            downloadLink.click();
+        });
+
+        document.getElementById('loadButton').addEventListener('click', function () {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const contents = e.target.result;
+                    const config = JSON.parse(contents);
+                    document.getElementById('userId').value = config.userId;
+                    document.getElementById('shakeTime').value = config.shakeTime;
+                    document.getElementById('bubbleTime').value = config.bubbleTime;
+                    alert('Configuration loaded!');
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        window.onload = function() {
+            const config = JSON.parse(localStorage.getItem('config') || '{}');
+            document.getElementById('userId').value = config.userId || '';
+            document.getElementById('shakeTime').value = config.shakeTime || '';
+            document.getElementById('bubbleTime').value = config.bubbleTime || '';
+        }
+
+        document.getElementById('configForm').addEventListener('submit', function (event) {
+            const config = {
+                userId: document.getElementById('userId').value,
+                shakeTime: document.getElementById('shakeTime').value,
+                bubbleTime: document.getElementById('bubbleTime').value,
+            };
+            localStorage.setItem('config', JSON.stringify(config));
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Twitch Eventsub</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #ghost {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            background-image: url('ghost.png');
+            background-size: cover;
+        }
+        #bubble {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px;
+            border-radius: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            display: none;
+        }
+		.shake {
+			animation: shake 0.5s cubic-bezier(0.42, 0, 0.58, 1) 10; 
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(1px, -1px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="ghost">
+        <div id="bubble"></div>
+    </div>
+    <script>
+		const broadcasterUserId = 'XXX'; 
+		const clientId = 'XXX';
+		const redirectUri = 'http://localhost:3000';
+		const scopes = 'channel:read:redemptions';
+		const authUrl = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+		
+		const notifQueue = [];
+		let isProcessing = false;
+
+		document.addEventListener('DOMContentLoaded', main);
+
+		function main() {
+			const token = getAccessTokenFromUrl() || sessionStorage.getItem('twitch_token');
+			if (!token) {
+				redirectToAuth();
+			} else {
+				sessionStorage.setItem('twitch_token', token);
+				console.log(token);
+				initWebSocket(token);
+			}
+		}
+
+		function redirectToAuth() {
+			window.location.href = authUrl;
+		}
+
+		function getAccessTokenFromUrl() {
+			const params = new URLSearchParams(window.location.hash.substring(1));
+			const token = params.get('access_token');
+			if (token) {
+				window.location.hash = '';
+			}
+			return token;
+		}
+
+		function initWebSocket(token) {
+			const ws = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
+			ws.token = token;
+			ws.onopen = () => console.log('WebSocket opened');
+			ws.onmessage = handleWebSocketMessage;
+		}
+
+		function handleWebSocketMessage(event) {
+			const message = JSON.parse(event.data);
+			switch (message.metadata.message_type) {
+				case 'notification':
+					handleNotification(message.payload);
+					break;
+				case 'session_welcome':
+					requestSubscriptions(message.payload.session.id, this.token);
+					break;
+				default:
+					console.log('Unhandled message type:', message.metadata.message_type);
+			}
+		}
+
+		function handleNotification(payload) {
+			const { user_name, reward } = payload.event;
+			notifQueue.push(`${user_name} redeemed ${reward.title}`);
+			console.log(`Notification received: ${user_name}`);
+			processQueue();
+		}
+
+		function processQueue() {
+			if (isProcessing || notifQueue.length === 0) return;
+			isProcessing = true;
+			const message = notifQueue.shift();
+			console.log(`Processing Queue: ${message}`);
+			showBubble(message);
+			shakeGhost();
+		}
+
+		function requestSubscriptions(sessionId, token) {
+			const rewardId = 'XXX'; 
+			const topics = {
+				'channel.channel_points_custom_reward_redemption.add': { version: '1', condition: { broadcaster_user_id: broadcasterUserId, reward_id: rewardId } }
+			};
+
+			Object.entries(topics).forEach(([type, details]) => subscribeToTopic(type, details, sessionId, token));
+		}
+
+		function subscribeToTopic(type, details, sessionId, token) {
+			fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+				method: 'POST',
+				headers: {
+					'Client-ID': clientId,
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					type,
+					version: details.version,
+					condition: details.condition,
+					transport: { method: 'websocket', session_id: sessionId }
+				})
+			})
+			.then(resp => resp.json())
+			.then(handleSubscriptionResponse)
+			.catch(err => console.error(`Error with EventSub call ${type}:`, err));
+		}
+
+		function handleSubscriptionResponse(response) {
+			if (response.error) {
+				console.error('Error with EventSub:', response.message);
+			} else {
+				console.log('Subscription successful:', response.data);
+			}
+		}
+
+		function showBubble(message) {
+			const bubble = document.getElementById('bubble');
+			bubble.innerText = message;
+			bubble.style.display = 'block';
+			setTimeout(() => {
+				bubble.style.display = 'none';
+				isProcessing = false;
+				processQueue();
+			}, 5000);
+		}
+
+		function shakeGhost() {
+            const ghost = document.getElementById('ghost');
+            ghost.classList.remove('shake');
+            void ghost.offsetWidth; //force reflow
+            ghost.classList.add('shake');
+			ghost.addEventListener('animationend', () => {
+                ghost.classList.remove('shake');
+            }, { once: true });
+        }
+    </script>
+</body>
+</html>
